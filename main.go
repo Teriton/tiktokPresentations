@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -9,16 +10,73 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strconv"
 
 	"github.com/gocolly/colly"
 )
 
 func main() {
+	lenOfArgs := len(os.Args)
+	if lenOfArgs < 2 {
+
+	}
+	var input string
+	var lenOfSplit int
+	var err error
+	switch lenOfArgs {
+	case 1:
+		fmt.Printf("%s\n%s\n%s\n",
+			"Not enough args.",
+			"./main [nameOfFile]",
+			"./main [nameOfFile] [lenOfSplit]",
+		)
+		return
+	case 2:
+		input, err = getInputFromFile(os.Args[1])
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+		lenOfSplit = 5
+		break
+	case 3:
+		input, err = getInputFromFile(os.Args[1])
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+		lenOfSplit, err = strconv.Atoi(os.Args[2])
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+	}
+
 	downloadFiles(
-		"Здравствуй, наконец-то мы тебя нашли! Это администрация порно сайта который ты неоднократно посещаешь.Мы решили напомнить, что срок твоей годовой подписки истекает сегодня и ее необходимо продлить.Также по твоим многочисленным просьбам мы обновили раздел Гей-Порно с кучей увлекательных сюжетов, которые обязательно придутся тебе по вкусу. Не забудь поделиться этой информацией со своей семьей, друзьями и знакомыми.Ждем Всех в следующий раз!",
-		5,
+		input,
+		lenOfSplit,
 	)
 	// InitGtk()
+}
+
+func getInputFromFile(fileName string) (string, error) {
+	file, err := os.Open(fileName)
+	if err != nil {
+		log.Fatal(err)
+		return "", errors.New("Can't open file")
+	}
+	defer file.Close()
+
+	var input string
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		input += scanner.Text()
+	}
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+	return input, nil
 }
 
 func downloadFiles(str string, deviedeFactor int) {
